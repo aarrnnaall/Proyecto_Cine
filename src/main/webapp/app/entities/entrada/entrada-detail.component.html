@@ -1,0 +1,39 @@
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div *ngIf="entrada">
+            <h2><span jhiTranslate="proyectoCineApp.entrada.detail.title">Entrada</span> {{entrada.id}}</h2>
+            <hr>
+            <jhi-alert-error></jhi-alert-error>
+            <dl class="row-md jh-entity-details">
+                <dt><span jhiTranslate="proyectoCineApp.entrada.descripcion">Descripcion</span></dt>
+                <dd>
+                    <span>{{entrada.descripcion}}</span>
+                </dd>
+                <dt><span jhiTranslate="proyectoCineApp.entrada.valor">Valor</span></dt>
+                <dd>
+                    <span>{{entrada.valor}}</span>
+                </dd>
+                <dt><span jhiTranslate="proyectoCineApp.entrada.created">Created</span></dt>
+                <dd>
+                    <span>{{entrada.created}}</span>
+                </dd>
+                <dt><span jhiTranslate="proyectoCineApp.entrada.updated">Updated</span></dt>
+                <dd>
+                    <span>{{entrada.updated}}</span>
+                </dd>
+            </dl>
+
+            <button type="submit"
+                    (click)="previousState()"
+                    class="btn btn-info">
+                <fa-icon [icon]="'arrow-left'"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back"> Back</span>
+            </button>
+
+            <button type="button"
+                    [routerLink]="['/entrada', entrada.id, 'edit']"
+                    class="btn btn-primary">
+                <fa-icon [icon]="'pencil-alt'"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit"> Edit</span>
+            </button>
+        </div>
+    </div>
+</div>

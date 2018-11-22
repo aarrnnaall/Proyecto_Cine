@@ -1,0 +1,28 @@
+
+{
+    "proyectoCineApp": {
+        "ocupacion" : {
+            "home": {
+                "title": "Ocupacions",
+                "createLabel": "Crear nuevo Ocupacion",
+                "createOrEditLabel": "Crear o editar Ocupacion"
+            },
+            "created": "Un nuevo Ocupacion ha sido creado con el identificador {{ param }}",
+            "updated": "Un Ocupacion ha sido actualizado con el identificador {{ param }}",
+            "deleted": "Un Ocupacion ha sido eliminado con el identificador {{ param }}",
+            "delete": {
+                "question": "¿Seguro que quiere eliminar Ocupacion {{ id }}?"
+            },
+            "detail": {
+                "title": "Ocupacion"
+            },
+            "valor": "Valor",
+            "created": "Created",
+            "updated": "Updated",
+            "ticket": "Ticket",
+            "entrada": "Entrada",
+            "butaca": "Butaca",
+            "funcion": "Funcion"
+        }
+    }
+}

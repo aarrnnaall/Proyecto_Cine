@@ -1,0 +1,27 @@
+
+{
+    "proyectoCineApp": {
+        "pelicula" : {
+            "home": {
+                "title": "Peliculas",
+                "createLabel": "Crear nuevo Pelicula",
+                "createOrEditLabel": "Crear o editar Pelicula"
+            },
+            "created": "Un nuevo Pelicula ha sido creado con el identificador {{ param }}",
+            "updated": "Un Pelicula ha sido actualizado con el identificador {{ param }}",
+            "deleted": "Un Pelicula ha sido eliminado con el identificador {{ param }}",
+            "delete": {
+                "question": "¿Seguro que quiere eliminar Pelicula {{ id }}?"
+            },
+            "detail": {
+                "title": "Pelicula"
+            },
+            "titulo": "Titulo",
+            "estreno": "Estreno",
+            "created": "Created",
+            "updated": "Updated",
+            "funcion": "Funcion",
+            "calificacion": "Calificacion"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+
+{
+    "proyectoCineApp": {
+        "funcion" : {
+            "home": {
+                "title": "Funcions",
+                "createLabel": "Crear nuevo Funcion",
+                "createOrEditLabel": "Crear o editar Funcion"
+            },
+            "created": "Un nuevo Funcion ha sido creado con el identificador {{ param }}",
+            "updated": "Un Funcion ha sido actualizado con el identificador {{ param }}",
+            "deleted": "Un Funcion ha sido eliminado con el identificador {{ param }}",
+            "delete": {
+                "question": "¿Seguro que quiere eliminar Funcion {{ id }}?"
+            },
+            "detail": {
+                "title": "Funcion"
+            },
+            "fecha": "Fecha",
+            "valor": "Valor",
+            "created": "Created",
+            "updated": "Updated",
+            "ocupacion": "Ocupacion",
+            "pelicula": "Pelicula",
+            "sala": "Sala"
+        }
+    }
+}
