@@ -1,5 +1,7 @@
 package ar.edu.um.programacion2_2018.cine.web.rest;
 
+import ar.edu.um.programacion2_2018.cine.domain.Pelicula;
+import ar.edu.um.programacion2_2018.cine.repository.PeliculaRepository;
 import com.codahale.metrics.annotation.Timed;
 import ar.edu.um.programacion2_2018.cine.domain.Funcion;
 import ar.edu.um.programacion2_2018.cine.repository.FuncionRepository;
@@ -8,6 +10,7 @@ import ar.edu.um.programacion2_2018.cine.web.rest.util.HeaderUtil;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -117,4 +120,7 @@ public class FuncionResource {
         funcionRepository.deleteById(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
+
+
+
 }

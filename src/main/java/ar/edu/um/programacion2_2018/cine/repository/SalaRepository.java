@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface SalaRepository extends JpaRepository<Sala, Long> {
-
+Sala findByDescripcion(String descripcion);
 }
