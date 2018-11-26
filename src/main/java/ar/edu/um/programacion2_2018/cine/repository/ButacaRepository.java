@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -19,6 +20,7 @@ public interface ButacaRepository extends JpaRepository<Butaca, Long> {
 
 
     List<Butaca> findAllByIdNotIn(Iterable<Long> longs);
+
 
     //List<Butaca> findAllByIdIsNot(Long id);
 
