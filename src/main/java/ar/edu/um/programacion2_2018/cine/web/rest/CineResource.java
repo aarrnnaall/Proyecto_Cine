@@ -5,12 +5,9 @@ import ar.edu.um.programacion2_2018.cine.repository.*;
 import ar.edu.um.programacion2_2018.cine.web.rest.errors.BadRequestAlertException;
 import ar.edu.um.programacion2_2018.cine.web.rest.util.HeaderUtil;
 import com.codahale.metrics.annotation.Timed;
-import org.joda.time.DateTime;
-import org.mapstruct.ap.internal.conversion.BigDecimalToBigIntegerConversion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,13 +101,13 @@ class CineResourse {
 
         return result;
     }
-    @PostMapping("/tickets/butaca/{id_cliente}/{id_butaca}/{cant_butaca}")
+    @PostMapping("/tickets/butaca/{id_cliente}/{id_butaca}")
     @Timed
-    public Ticket createTicket(@PathVariable Long id_cliente,@PathVariable Long id_butaca,@PathVariable Integer cant_butaca) throws URISyntaxException {
+    public Ticket createTicketWintEntrada(@PathVariable Long id_cliente,@PathVariable Long id_butaca) throws URISyntaxException {
         log.debug("REST request to save Ticket : {}", id_cliente);
         LocalDate fecha_actual = LocalDate.now();
         ZonedDateTime fecha_actual2=ZonedDateTime.now();
-
+        Integer cant_butaca=1;
         Ticket ticket_cargado = new Ticket();
         ticket_cargado.setFechaTransaccion(fecha_actual);
         ticket_cargado.setCreated(fecha_actual2);
@@ -140,6 +137,34 @@ class CineResourse {
         return result_ticket;
 
 
+    }
+    @PostMapping("/entradas/ticket/{id_ticket}/{id_butaca}")
+    @Timed
+    public Entrada createEntrada(@PathVariable Long id_ticket,@PathVariable Long id_butaca) throws URISyntaxException {
+        log.debug("REST request to save Entrada : {}", id_ticket);
+        Entrada entrada = new Entrada();
+        Optional<Ticket> ticket_creado=ticketRepository.findById(id_ticket);
+        Optional<Butaca> butaca= butacaRepository.findById(id_butaca);
+        Ocupacion ocupacion= ocupacionRepository.findByButaca(butaca);
+        ZonedDateTime fecha_actual2=ZonedDateTime.now();
+
+        String desc_sala=ocupacion.getFuncion().getSala().getDescripcion();
+        String desc_fila=ocupacion.getButaca().getDescripcion();
+        Integer desc_numero=ocupacion.getButaca().getNumero();
+        String desc_completa=desc_sala+" "+desc_fila+" "+desc_numero;
+        entrada.setDescripcion(desc_completa);
+        entrada.setValor(ocupacion.getValor());
+        entrada.setUpdated(fecha_actual2);
+        entrada.setCreated(fecha_actual2);
+        if (entrada.getId() != null) {
+            throw new BadRequestAlertException("A new entrada cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+
+        Entrada result = entradaRepository.save(entrada);
+        ocupacion.setEntrada(result);
+        Ocupacion result_ocupacion = ocupacionRepository.save(ocupacion);
+
+        return result;
     }
 
 

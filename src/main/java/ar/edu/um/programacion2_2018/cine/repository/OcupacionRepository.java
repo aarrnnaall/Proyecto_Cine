@@ -24,4 +24,6 @@ public interface OcupacionRepository extends JpaRepository<Ocupacion, Long> {
     Ocupacion findByTicket(Ticket ticket);
 
     Ocupacion findByButaca(Optional<Butaca> butaca);
+
+    Ocupacion findByTicket(Optional<Ticket> ticket);
 }
