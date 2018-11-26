@@ -6,20 +6,21 @@ import ar.edu.um.programacion2_2018.cine.web.rest.errors.BadRequestAlertExceptio
 import ar.edu.um.programacion2_2018.cine.web.rest.util.HeaderUtil;
 import com.codahale.metrics.annotation.Timed;
 import org.joda.time.DateTime;
+import org.mapstruct.ap.internal.conversion.BigDecimalToBigIntegerConversion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -102,6 +103,43 @@ class CineResourse {
         Ocupacion result = ocupacionRepository.save(ocupacion);
 
         return result;
+    }
+    @PostMapping("/tickets/butaca/{id_cliente}/{id_butaca}/{cant_butaca}")
+    @Timed
+    public Ticket createTicket(@PathVariable Long id_cliente,@PathVariable Long id_butaca,@PathVariable Integer cant_butaca) throws URISyntaxException {
+        log.debug("REST request to save Ticket : {}", id_cliente);
+        LocalDate fecha_actual = LocalDate.now();
+        ZonedDateTime fecha_actual2=ZonedDateTime.now();
+
+        Ticket ticket_cargado = new Ticket();
+        ticket_cargado.setFechaTransaccion(fecha_actual);
+        ticket_cargado.setCreated(fecha_actual2);
+        ticket_cargado.setUpdated(fecha_actual2);
+        Optional<Butaca> butaca_recervada= butacaRepository.findById(id_butaca);
+        Ocupacion ocupacion_acargar = ocupacionRepository.findByButaca(butaca_recervada);
+        ticket_cargado.setButacas(cant_butaca);
+        BigDecimal cant_but = new BigDecimal(cant_butaca);
+        BigDecimal cant_valor = ocupacion_acargar.getValor();
+        BigDecimal importe;
+        importe = cant_but.multiply(cant_valor);
+        ticket_cargado.setImporte(importe);
+
+        Optional<Cliente> cliente_ticket=clienteRepository.findById(id_cliente);
+        ticket_cargado.setCliente(cliente_ticket.get());
+        final String uuid = UUID.randomUUID().toString();
+        ticket_cargado.setPagoUuid(uuid);
+
+        if (ticket_cargado.getId() != null) {
+            throw new BadRequestAlertException("A new ticket cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+
+        Ticket result_ticket = ticketRepository.save(ticket_cargado);
+        ocupacion_acargar.setTicket(result_ticket);
+        Ocupacion result_ocupacion = ocupacionRepository.save(ocupacion_acargar);
+
+        return result_ticket;
+
+
     }
 
 
