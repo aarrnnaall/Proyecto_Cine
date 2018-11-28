@@ -19,11 +19,17 @@ import java.util.Optional;
 @Repository
 public interface OcupacionRepository extends JpaRepository<Ocupacion, Long> {
 
-    //List<Butaca> findOcupacionByFuncionAndButacaNotNull(Funcion funcion);
     List<Ocupacion> findAllByFuncionAndButacaNotNull(Funcion funcion);
+    List<Ocupacion> findAllByTicketNotNull();
+
+    List<Ocupacion> findAllByButaca(Iterable<Long> longs);
+
     Ocupacion findByTicket(Ticket ticket);
+    Ocupacion findByButaca(Butaca butaca);
 
     Ocupacion findByButaca(Optional<Butaca> butaca);
-
     Ocupacion findByTicket(Optional<Ticket> ticket);
+
+
+
 }
