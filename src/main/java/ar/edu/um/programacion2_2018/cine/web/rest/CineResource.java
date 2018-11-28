@@ -50,7 +50,7 @@ class CineResourse {
     //Metodos Agregados
     @GetMapping("/funcions/peliculas/{titulo}")//Buscar la Funcion de una Pelicula (Le pasas el titulo de la Pelicula)
     @Timed
-    public List<Funcion> getFuncionByPelicula(@PathVariable String titulo) {
+    public List<Funcion> getFuncionPelicula(@PathVariable String titulo) {
         log.debug("REST request to get Funcion : {}", titulo);
         Pelicula pelicula = peliculaRepository.findByTitulo(titulo);
 
@@ -89,27 +89,38 @@ class CineResourse {
 
     @PostMapping("/ocupacions/butaca/{id_butacas}/{desc_sala}")//Revervar butaca disponible
     @Timed
-    public Ocupacion createOcupacion(@PathVariable Long id_butacas, @PathVariable String desc_sala) throws URISyntaxException   {
+    public List<Ocupacion> createOcupacion(@PathVariable String id_butacas, @PathVariable String desc_sala) throws URISyntaxException   {
+
         log.debug("REST request to save Ocupacion : {}", id_butacas);
-        Ocupacion ocupacion = new Ocupacion();
-        Optional<Butaca> butaca_disponible = butacaRepository.findById(id_butacas);
         Sala sala_desc = salaRepository.findByDescripcion(desc_sala);
         Funcion funcion= funcionRepository.findBySala(sala_desc);
         Calendar fecha = Calendar.getInstance();
         ZonedDateTime fecha_actual = ZonedDateTime.now();
+        String[] butacas = id_butacas.split("-");
+        List<Ocupacion> ocupacions= new ArrayList<>();
+        Iterable<Long> butacas_id = new ArrayList<>();
 
-        ocupacion.setButaca(butaca_disponible.get());
-        ocupacion.setFuncion(funcion);
-        ocupacion.setValor(funcion.getValor());
-        ocupacion.setCreated(fecha_actual);
-        ocupacion.setUpdated(fecha_actual);
-
-        if (ocupacion.getId() != null) {
-            throw new BadRequestAlertException("A new ocupacion cannot already have an ID", ENTITY_NAME, "idexists");
+        for(int indice = 0;indice<butacas.length;indice++)
+        {
+            ((ArrayList<Long>) butacas_id).add(Long.parseLong(butacas[indice]));
         }
-        Ocupacion result = ocupacionRepository.save(ocupacion);
 
-        return result;
+        List<Butaca> butacas_disponible = butacaRepository.findAllById(butacas_id);
+
+        for(int indice = 0;indice<butacas_disponible.size();indice++)
+        {
+            Ocupacion ocupacion=new Ocupacion();
+            ocupacion.setButaca(butacas_disponible.get(indice));
+            ocupacion.setFuncion(funcion);
+            ocupacion.setValor(funcion.getValor());
+            ocupacion.setCreated(fecha_actual);
+            ocupacion.setUpdated(fecha_actual);
+            ocupacions.add(ocupacion);
+        }
+
+        List<Ocupacion> result_ocupacion = ocupacionRepository.saveAll(ocupacions);
+
+        return result_ocupacion;
     }
     @PostMapping("/tickets/butaca/{id_cliente}/{cant_butaca}/{id_butacas}")
     @Timed
@@ -190,7 +201,7 @@ class CineResourse {
 
     }
 
-    @PostMapping("/cargar/butacas/ocupacions/{desc_sala}")
+    @PostMapping("/cargar/butacas/{desc_sala}")
     @Timed
     public String createdButacas(@PathVariable String desc_sala) {
         log.debug("REST request to get Butacas : {}");
@@ -226,25 +237,9 @@ class CineResourse {
             }
         }
 
-        Funcion funcion=funcionRepository.findBySala(sala_butaca);
-
-        List<Ocupacion> ocupacions_acargar = new ArrayList<>();
-
-        for(int indice = 0;indice<cont;indice++)
-        {
-            Ocupacion ocupacion=new Ocupacion();
-            ocupacion.setUpdated(fecha_actual2);
-            ocupacion.setCreated(fecha_actual2);
-            ocupacion.setValor(funcion.getValor());
-            ocupacion.setFuncion(funcion);
-            ocupacions_acargar.add(ocupacion);
-
-        }
-
-        ocupacionRepository.saveAll(ocupacions_acargar);
         butacaRepository.saveAll(butacas_acargar);
 
-        return "Butacas y Ocupaciones Cargadas con Exito";
+        return "Butacas Cargadas";
 
     }
 
