@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface OcupacionRepository extends JpaRepository<Ocupacion, Long> {
 
     List<Ocupacion> findAllByFuncionAndButacaNotNull(Funcion funcion);
-    List<Ocupacion> findAllByTicketNotNull();
+    List<Ocupacion> findAllByTicketNotNullAndEntradaNull();
 
     List<Ocupacion> findAllByButaca(Iterable<Long> longs);
 
@@ -30,6 +30,6 @@ public interface OcupacionRepository extends JpaRepository<Ocupacion, Long> {
     Ocupacion findByButaca(Optional<Butaca> butaca);
     Ocupacion findByTicket(Optional<Ticket> ticket);
 
-
+    List<Ocupacion> findAllByTicket(Ticket ticket);
 
 }

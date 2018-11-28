@@ -58,7 +58,7 @@ class CineResourse {
         return funciones;
     }
 
-    @GetMapping("/sala/butacas/{desc}")//Ver las butacas libre de una Sala (Le Pasamos la descripcion de la Sala)
+    @GetMapping("/sala/butacas_disponibles/{desc}")//Ver las butacas libre de una Sala (Le Pasamos la descripcion de la Sala)
     @Timed
     public List<Butaca> getSalaButacas(@PathVariable String desc) {
         log.debug("REST request to get Sala : {}", desc);
@@ -66,6 +66,7 @@ class CineResourse {
         Funcion funcion = funcionRepository.findBySala(sala_desc);
 
         List<Ocupacion> ocupacions= ocupacionRepository.findAllByFuncionAndButacaNotNull(funcion);
+
         Iterable<Long> butacas_id = new ArrayList<>();
 
         for(int indice = 0;indice<ocupacions.size();indice++)
@@ -73,9 +74,14 @@ class CineResourse {
             ((ArrayList<Long>) butacas_id).add(ocupacions.get(indice).getButaca().getId());
         }
 
-        List<Butaca> butacas_disponible = butacaRepository.findAllByIdNotIn(butacas_id);
+        if(ocupacions == null || ocupacions.isEmpty()){
+            return butacaRepository.findAll();
+        }else   {
+            List<Butaca> butacas_disponible = butacaRepository.findAllByIdNotIn(butacas_id);
+            return butacas_disponible;
 
-        return butacas_disponible;
+        }
+
 
 
 
@@ -107,7 +113,7 @@ class CineResourse {
     }
     @PostMapping("/tickets/butaca/{id_cliente}/{cant_butaca}/{id_butacas}")
     @Timed
-    public Ticket createTicketWintOcupacion(@PathVariable Long id_cliente,@PathVariable Integer cant_butaca,@PathVariable String id_butacas) {
+    public List<Ocupacion> createTicketWintOcupacion(@PathVariable Long id_cliente,@PathVariable Integer cant_butaca,@PathVariable String id_butacas) {
         log.debug("REST request to save Ticket : {}", id_butacas);
         LocalDate fecha_actual = LocalDate.now();
         ZonedDateTime fecha_actual2=ZonedDateTime.now();
@@ -149,16 +155,18 @@ class CineResourse {
             ocupacionRepository.save(ocupacions.get(indice));
         }
 
-        return result_ticket;
+        List<Ocupacion> ocupacionList=ocupacionRepository.findAllByTicket(result_ticket);
+
+        return ocupacionList;
 
     }
 
-    @GetMapping("/ticket_NotNull")
+    @PostMapping("/cargar_entradas")
     @Timed
-    public List<Entrada> getTicket() {
-        log.debug("REST request to get Ticket : {}");
+    public List<Entrada> createdEntradas() {
+        log.debug("REST request to get Entradas : {}");
         ZonedDateTime fecha_actual2=ZonedDateTime.now();
-        List<Ocupacion> ocupacions= ocupacionRepository.findAllByTicketNotNull();
+        List<Ocupacion> ocupacions= ocupacionRepository.findAllByTicketNotNullAndEntradaNull();
         List<Entrada> entradas_acrear = new ArrayList<>();
         for(int indice = 0;indice<ocupacions.size();indice++)
         {
@@ -168,18 +176,77 @@ class CineResourse {
             entrada.setCreated(fecha_actual2);
             entrada.setDescripcion(ocupacions.get(indice).getButaca().getFila()+"-"+ocupacions.get(indice).getButaca().getNumero()+"__"+ocupacions.get(indice).getFuncion().getSala().getDescripcion());
             entradas_acrear.add(entrada);
-
         }
-        entradaRepository.saveAll(entradas_acrear);
+        List<Entrada> result_entradas = entradaRepository.saveAll(entradas_acrear);
         for(int indice = 0;indice<ocupacions.size();indice++)
         {
             ocupacions.get(indice).setEntrada(entradas_acrear.get(indice));
         }
         ocupacionRepository.saveAll(ocupacions);
-        return entradas_acrear;
+
+        return result_entradas;
 
 
 
     }
+
+    @PostMapping("/cargar/butacas/ocupacions/{desc_sala}")
+    @Timed
+    public String createdButacas(@PathVariable String desc_sala) {
+        log.debug("REST request to get Butacas : {}");
+        ZonedDateTime fecha_actual2=ZonedDateTime.now();
+        Sala sala_butaca=salaRepository.findByDescripcion(desc_sala);
+
+        List<Butaca> butacas_acargar = new ArrayList<>();
+        int cont=0;
+        for(char fila = 'A'; fila <= 'P' ;fila++)
+
+        {
+            for(int numero = 1;numero<=14;numero++)
+            {
+            Butaca butaca=new Butaca();
+            butaca.setFila(String.valueOf(fila));
+            butaca.setNumero(numero);
+            cont++;
+            if((cont) <= 70) {
+                butaca.setDescripcion("Fila de Adelante");
+            }
+            if((cont) >= 70 && (cont) <= 140){
+                butaca.setDescripcion("Fila del Medio");
+            }
+            if((cont) >= 140 ){
+                butaca.setDescripcion("Fila de Atras");
+            }
+            butaca.setCreated(fecha_actual2);
+            butaca.setUpdated(fecha_actual2);
+            butaca.setSala(sala_butaca);
+
+            butacas_acargar.add(butaca);
+
+            }
+        }
+
+        Funcion funcion=funcionRepository.findBySala(sala_butaca);
+
+        List<Ocupacion> ocupacions_acargar = new ArrayList<>();
+
+        for(int indice = 0;indice<cont;indice++)
+        {
+            Ocupacion ocupacion=new Ocupacion();
+            ocupacion.setUpdated(fecha_actual2);
+            ocupacion.setCreated(fecha_actual2);
+            ocupacion.setValor(funcion.getValor());
+            ocupacion.setFuncion(funcion);
+            ocupacions_acargar.add(ocupacion);
+
+        }
+
+        ocupacionRepository.saveAll(ocupacions_acargar);
+        butacaRepository.saveAll(butacas_acargar);
+
+        return "Butacas y Ocupaciones Cargadas con Exito";
+
+    }
+
 
 }
