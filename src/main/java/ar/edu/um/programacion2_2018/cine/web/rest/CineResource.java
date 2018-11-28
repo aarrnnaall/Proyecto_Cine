@@ -159,20 +159,23 @@ class CineResourse {
         log.debug("REST request to get Ticket : {}");
         ZonedDateTime fecha_actual2=ZonedDateTime.now();
         List<Ocupacion> ocupacions= ocupacionRepository.findAllByTicketNotNull();
-        Entrada entrada = new Entrada();
         List<Entrada> entradas_acrear = new ArrayList<>();
-
         for(int indice = 0;indice<ocupacions.size();indice++)
         {
+            Entrada entrada = new Entrada();
             entrada.setValor(ocupacions.get(indice).getValor());
             entrada.setUpdated(fecha_actual2);
             entrada.setCreated(fecha_actual2);
-            entrada.setDescripcion(ocupacions.get(indice).getButaca().getFila()+" "+ocupacions.get(indice).getButaca().getNumero()+" "+ocupacions.get(indice).getFuncion().getSala().getDescripcion());
+            entrada.setDescripcion(ocupacions.get(indice).getButaca().getFila()+"-"+ocupacions.get(indice).getButaca().getNumero()+"__"+ocupacions.get(indice).getFuncion().getSala().getDescripcion());
             entradas_acrear.add(entrada);
 
         }
-            //entradaRepository.saveAll(entradas_acrear);
-
+        entradaRepository.saveAll(entradas_acrear);
+        for(int indice = 0;indice<ocupacions.size();indice++)
+        {
+            ocupacions.get(indice).setEntrada(entradas_acrear.get(indice));
+        }
+        ocupacionRepository.saveAll(ocupacions);
         return entradas_acrear;
 
 
