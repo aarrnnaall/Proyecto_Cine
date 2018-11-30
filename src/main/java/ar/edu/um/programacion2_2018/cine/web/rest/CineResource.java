@@ -48,7 +48,7 @@ class CineResourse {
 
 
     //Metodos Agregados
-    @GetMapping("/funcions/peliculas/{titulo}")//Buscar la Funcion de una Pelicula (Le pasas el titulo de la Pelicula)
+    @GetMapping("/funcions/peliculas/{titulo}/")//Buscar la Funcion de una Pelicula (Le pasas el titulo de la Pelicula)
     @Timed
     public List<Funcion> getFuncionPelicula(@PathVariable String titulo) {
         log.debug("REST request to get Funcion : {}", titulo);
@@ -58,12 +58,12 @@ class CineResourse {
         return funciones;
     }
 
-    @GetMapping("/sala/butacas_disponibles/{desc}")//Ver las butacas libre de una Sala (Le Pasamos la descripcion de la Sala)
+    @GetMapping("/sala/butacas_disponibles/{desc_sala}/{id_funcion}")//Ver las butacas libre de una Sala (Le Pasamos la descripcion de la Sala)
     @Timed
-    public List<Butaca> getSalaButacas(@PathVariable String desc) {
-        log.debug("REST request to get Sala : {}", desc);
-        Sala sala_desc = salaRepository.findByDescripcion(desc);
-        Funcion funcion = funcionRepository.findBySala(sala_desc);
+    public List<Butaca> getSalaButacas(@PathVariable String desc_sala,@PathVariable Long id_funcion) {
+        log.debug("REST request to get Sala : {}", desc_sala);
+        Sala sala_desc = salaRepository.findByDescripcion(desc_sala);
+        Funcion funcion = funcionRepository.findBySalaAndId(sala_desc,id_funcion);
 
         List<Ocupacion> ocupacions= ocupacionRepository.findAllByFuncionAndButacaNotNull(funcion);
 
@@ -75,9 +75,9 @@ class CineResourse {
         }
 
         if(ocupacions == null || ocupacions.isEmpty()){
-            return butacaRepository.findAll();
+            return butacaRepository.findAllBySala(sala_desc);
         }else   {
-            List<Butaca> butacas_disponible = butacaRepository.findAllByIdNotIn(butacas_id);
+            List<Butaca> butacas_disponible = butacaRepository.findAllByIdNotInAndSala(butacas_id,sala_desc);
             return butacas_disponible;
 
         }
@@ -87,13 +87,13 @@ class CineResourse {
 
     }
 
-    @PostMapping("/ocupacions/butaca/{id_butacas}/{desc_sala}")//Revervar butaca disponible
+    @PostMapping("/ocupacions/butaca/{id_butacas}/{desc_sala}/{id_funcion}")//Revervar butaca disponible
     @Timed
-    public List<Ocupacion> createOcupacion(@PathVariable String id_butacas, @PathVariable String desc_sala) throws URISyntaxException   {
+    public List<Ocupacion> createOcupacion(@PathVariable String id_butacas, @PathVariable String desc_sala, @PathVariable Long id_funcion) throws URISyntaxException   {
 
         log.debug("REST request to save Ocupacion : {}", id_butacas);
         Sala sala_desc = salaRepository.findByDescripcion(desc_sala);
-        Funcion funcion= funcionRepository.findBySala(sala_desc);
+        Funcion funcion= funcionRepository.findBySalaAndId(sala_desc,id_funcion);
         Calendar fecha = Calendar.getInstance();
         ZonedDateTime fecha_actual = ZonedDateTime.now();
         String[] butacas = id_butacas.split("-");

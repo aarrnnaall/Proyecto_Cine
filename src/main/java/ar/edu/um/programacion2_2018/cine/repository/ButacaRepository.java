@@ -16,6 +16,6 @@ import java.util.Optional;
 @Repository
 public interface ButacaRepository extends JpaRepository<Butaca, Long> {
     List<Butaca> findAllBySala(Sala sala_desc);
-    List<Butaca> findAllByIdNotIn(Iterable<Long> longs);
+    List<Butaca> findAllByIdNotInAndSala(Iterable<Long> longs,Sala sala);
 
 }

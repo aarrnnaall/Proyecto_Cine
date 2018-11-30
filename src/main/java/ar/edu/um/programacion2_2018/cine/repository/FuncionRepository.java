@@ -17,5 +17,5 @@ import java.util.List;
 public interface FuncionRepository extends JpaRepository<Funcion, Long> {
 
     List<Funcion> findAllByPelicula(Pelicula peliculas);
-    Funcion findBySala(Sala sala);
+    Funcion findBySalaAndId(Sala sala,Long id_funcion);
 }
