@@ -1,27 +1,21 @@
 package ar.edu.um.programacion2_2018.cine.web.rest;
-
 import ar.edu.um.programacion2_2018.cine.domain.*;
 import ar.edu.um.programacion2_2018.cine.repository.*;
-import ar.edu.um.programacion2_2018.cine.web.rest.errors.BadRequestAlertException;
-import ar.edu.um.programacion2_2018.cine.web.rest.util.HeaderUtil;
 import com.codahale.metrics.annotation.Timed;
-import com.google.errorprone.annotations.FormatString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.swing.*;
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Null;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 @RestController
 @RequestMapping("/api")
@@ -122,9 +116,10 @@ class CineResourse {
 
         return result_ocupacion;
     }
-    @PostMapping("/tickets/butaca/{id_cliente}/{cant_butaca}/{id_butacas}")
+
+    @PostMapping("/tickets/butaca/{id_cliente}/{cant_butaca}/{id_butacas}/{num_tarjeta}")//crear ticket consumiendo rest de validacion de la parte de pago
     @Timed
-    public List<Ocupacion> createTicketWintOcupacion(@PathVariable Long id_cliente,@PathVariable Integer cant_butaca,@PathVariable String id_butacas) {
+    public String createTicketWintOcupacion(@PathVariable Long id_cliente,@PathVariable Integer cant_butaca,@PathVariable String id_butacas,@PathVariable String num_tarjeta)throws IOException, java.io.IOException {
         log.debug("REST request to save Ticket : {}", id_butacas);
         LocalDate fecha_actual = LocalDate.now();
         ZonedDateTime fecha_actual2=ZonedDateTime.now();
@@ -153,26 +148,47 @@ class CineResourse {
         BigDecimal cant_valor = ocupacions.get(0).getValor();
         BigDecimal importe;
         importe = cant_but.multiply(cant_valor);
+        URL url = new URL("http://localhost:8081/api/validacion/"+num_tarjeta+"/"+importe);//your url i.e fetch data from .
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfVVNFUiIsImV4cCI6MTU0Mzc5MjEwOH0.vDAok7c3NRsddjsMi6t51jeJtxDPM_cLGHXCU4Dh2zWU8Dm8k3R2SCVzeMAZmQsXZOuQ8nYOcr4FbzIgtO8Rjw");
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Failed : HTTP Error code : "
+                + conn.getResponseCode());
+        }
+        InputStreamReader in = new InputStreamReader(conn.getInputStream());
+        BufferedReader br = new BufferedReader(in);
+        String output;
+        output = br.readLine();
         ticket_cargado.setImporte(importe);
         Optional<Cliente> cliente_ticket=clienteRepository.findById(id_cliente);
         ticket_cargado.setCliente(cliente_ticket.get());
         final String uuid = UUID.randomUUID().toString();
-        ticket_cargado.setPagoUuid(uuid);
-        Ticket result_ticket = ticketRepository.save(ticket_cargado);
+        ticket_cargado.setPagoUuid(output);
+        String salida="";
+        if(output!= null) {
+            Ticket result_ticket = ticketRepository.save(ticket_cargado);
 
-        for(int indice = 0;indice<butacas.length;indice++)
-        {
-            ocupacions.get(indice).setTicket(result_ticket);
-            ocupacionRepository.save(ocupacions.get(indice));
+            for(int indice = 0;indice<butacas.length;indice++)
+            {
+                ocupacions.get(indice).setTicket(result_ticket);
+                ocupacionRepository.save(ocupacions.get(indice));
+            }
+            salida= "Operacion Completa";
+        }
+        else {
+
+            ocupacionRepository.deleteAll(ocupacions);
+            salida ="Saldo Insuficiente";
         }
 
-        List<Ocupacion> ocupacionList=ocupacionRepository.findAllByTicket(result_ticket);
+        return salida ;
 
-        return ocupacionList;
 
     }
 
-    @PostMapping("/cargar_entradas")
+    @PostMapping("/cargar_entradas")//Carga Entradas
     @Timed
     public List<Entrada> createdEntradas() {
         log.debug("REST request to get Entradas : {}");
@@ -201,7 +217,7 @@ class CineResourse {
 
     }
 
-    @PostMapping("/cargar/butacas/{desc_sala}")
+    @PostMapping("/cargar/butacas/{desc_sala}")//Carga 224 butacas de una sala especifica
     @Timed
     public String createdButacas(@PathVariable String desc_sala) {
         log.debug("REST request to get Butacas : {}");
@@ -241,6 +257,14 @@ class CineResourse {
 
         return "Butacas Cargadas";
 
+    }
+    @GetMapping("/consultar_tickets/{id_ticket}")//Consultar Ticket
+    @Timed
+    public List<Ocupacion> getTicket(@PathVariable Long id_ticket) {
+        log.debug("REST request to get Ticket : {}", id_ticket);
+        Optional<Ticket> ticket = ticketRepository.findById(id_ticket);
+        List<Ocupacion> ocupacions=ocupacionRepository.findAllByTicket(ticket.get());
+        return ocupacions;
     }
 
 
